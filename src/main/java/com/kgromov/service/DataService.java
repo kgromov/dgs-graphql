@@ -2,12 +2,10 @@ package com.kgromov.service;
 
 import com.kgromov.graphql.dgs.types.Category;
 import com.kgromov.graphql.dgs.types.Recipe;
+import com.kgromov.graphql.dgs.types.RecipeDto;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -63,5 +61,52 @@ public class DataService {
 
     public Stream<Recipe> getRecipesByCategory(Category category) {
         return this.recipesRepository.getOrDefault(category.getId(), emptyList()).stream();
+    }
+
+    public Recipe createRecipe(String description) {
+        List<Category> categories = this.getCategories().collect(Collectors.toList());
+        Collections.shuffle(categories);
+        Category category = categories.get(0);
+        Recipe recipe = Recipe.newBuilder()
+                .description(description)
+                .category(category)
+                .build();
+        this.attachToCategory(recipe);
+        return recipe;
+    }
+
+    public Recipe createRecipe(RecipeDto recipeDto) {
+        Category category = this.getCategoryBy(c -> c.getId().equals(recipeDto.getCategoryId())).orElseThrow();
+        Recipe recipe = Recipe.newBuilder()
+                .id(String.valueOf(recipesRepository.size() + 1))
+                .description(recipeDto.getDescription())
+                .cookTime(recipeDto.getCookTime())
+                .prepTime(recipeDto.getPrepTime())
+                .url(recipeDto.getUrl())
+                .difficulty(recipeDto.getDifficulty())
+                .notes(recipeDto.getNotes())
+                .servings(recipeDto.getServings())
+                .source(recipeDto.getSource())
+                .category(category)
+                .build();
+        this.attachToCategory(recipe);
+        return recipe;
+    }
+
+    private void attachToCategory(Recipe recipe) {
+        String categoryId = recipe.getCategory().getId();
+        String recipeId = String.valueOf(recipesRepository.getOrDefault(categoryId, emptyList()).size() + 1);
+        recipe.setId(recipeId);
+        recipesRepository.computeIfAbsent(categoryId,
+                recipes -> new ArrayList<>()).add(recipe);
+    }
+
+    public Category createCategory(String name) {
+        Category category = new Category.Builder()
+                .id(String.valueOf(this.categoriesRepository.size() + 1))
+                .name(name)
+                .build();
+        categoriesRepository.put(category.getId(), category);
+        return category;
     }
 }

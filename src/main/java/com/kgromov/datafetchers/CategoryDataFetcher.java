@@ -33,4 +33,9 @@ public class CategoryDataFetcher {
         Category category = dfe.getSource();
         return dataService.getRecipesByCategory(category).toList();
     }
+
+    @DgsMutation
+    public Category addCategory(@InputArgument String name) {
+        return dataService.createCategory(name);
+    }
 }

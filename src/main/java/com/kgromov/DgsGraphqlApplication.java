@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.TypeRef;
 import com.kgromov.graphql.dgs.client.*;
 import com.kgromov.graphql.dgs.types.Category;
+import com.kgromov.graphql.dgs.types.Difficulty;
 import com.kgromov.graphql.dgs.types.Recipe;
+import com.kgromov.graphql.dgs.types.RecipeDto;
 import com.kgromov.service.DataService;
 import com.netflix.graphql.dgs.client.*;
 import com.netflix.graphql.dgs.client.codegen.GraphQLQueryRequest;
@@ -68,6 +70,12 @@ public class DgsGraphqlApplication {
             JsonNode data = objectMapper.reader().readValue(response.getJson(), JsonNode.class);
             String recipeJson = data.path("data").path("recipe").toString();
             Recipe recipe2 = objectMapper.readerFor(Recipe.class).readValue(recipeJson);
+
+            RecipeDto recipeDto = RecipeDto.newBuilder().description("Spagetti").categoryId("2").difficulty(Difficulty.EASY).build();
+            var addRecipeQuery = new AddRecipeGraphQLQuery.Builder().description("Macaronni").build();
+            var addRecipeQuery2 = new AddRecipeWithPayloadGraphQLQuery.Builder().recipeDto(recipeDto).build();
+            GraphQLResponse addRecipeResponse = blockingClient.executeQuery(new GraphQLQueryRequest(addRecipeQuery, projection).serialize());
+            GraphQLResponse addRecipeResponse2 = blockingClient.executeQuery(new GraphQLQueryRequest(addRecipeQuery2, projection).serialize());
         };
     }
 
