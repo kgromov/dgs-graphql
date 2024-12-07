@@ -18,7 +18,7 @@ class DgsGraphqlApplicationTests {
 	private GraphQlTester graphQlTester;
 
 	@Test
-	void checkRecipeByIdtAccount() {
+	void shouldGetFirscheckRecipeByIdtAccount() {
 		var queryRequest = new GraphQLQueryRequest(
 				RecipeGraphQLQuery.newRequest().build(),
 				new RecipeProjectionRoot().id().notes().category()
